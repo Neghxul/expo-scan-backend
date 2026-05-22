@@ -107,11 +107,11 @@ export async function listRecords(params: {
   if (q?.trim()) {
     const query = q.trim();
     where.OR = [
-      { qrRaw: { contains: query, mode: "insensitive" } },
-      { badgeNumber: { contains: query, mode: "insensitive" } },
-      { eventName: { contains: query, mode: "insensitive" } },
-      { phone: { contains: query, mode: "insensitive" } },
-      { email: { contains: query, mode: "insensitive" } },
+      { qrRaw: { contains: query } },
+      { badgeNumber: { contains: query } },
+      { eventName: { contains: query } },
+      { phone: { contains: query } },
+      { email: { contains: query } },
     ];
   }
 
