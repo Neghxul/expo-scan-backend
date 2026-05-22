@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SELLER
+  ADMIN
+  MANAGER
+  DIRECTOR
+  MARKETING
+}
+
+model User {
+  id               String   @id @default(cuid())
+  name             String
+  lastName         String?  // Apellido Paterno
+  maternalLastName String?  // Apellido Materno
+  birthDate        String?  // Fecha de nacimiento (String como DD/MM/AAAA o DateTime)
+  phone            String?  // Teléfono
+  whatsapp         String?
+  email            String   @unique
+  passwordHash     String   
+  role             Role     @default(SELLER)
+  isActive         Boolean  @default(true) 
+  records          Record[]
+  conversations    ConversationMember[]
+  messages         ChatMessage[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Record {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  qrRaw       String
+  badgeNumber String?  // Nuevo: Número de gafete
+  eventName   String?  // Nuevo: Nombre de la expo
+  fields      Json
+  phone       String?
+  email       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, createdAt])
+  @@unique([badgeNumber, eventName], name: "records_badge_event_unique")
+  @@map("records")
+}
+
+model Conversation {
+  id          String               @id @default(cuid())
+  title       String?
+  type        ConversationType     @default(DIRECT)
+  members     ConversationMember[]
+  messages    ChatMessage[]
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  @@map("conversations")
+}
+
+model ConversationMember {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastReadAt     DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+  @@map("conversation_members")
+}
+
+model ChatMessage {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Restrict)
+  body           String
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+  @@map("chat_messages")
+}
+
+enum ConversationType {
+  DIRECT
+  GROUP
+}
