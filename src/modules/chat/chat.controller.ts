@@ -2,7 +2,7 @@ import { Response } from "express";
 import { AuthenticatedRequest } from "../../middleware/auth.middleware";
 import { listChatUsers, listConversations, listMessages, markConversationRead, sendMessage, startDirectConversation } from "./chat.service";
 import { sendMessageSchema, startDirectConversationSchema } from "./chat.schemas";
-import { emitChatMessage } from "./chat.socket";
+import { emitChatMessage, emitChatRead } from "./chat.socket";
 
 export async function listChatUsersController(req: AuthenticatedRequest, res: Response) {
   const user = req.user;
@@ -65,7 +65,8 @@ export async function markReadController(req: AuthenticatedRequest, res: Respons
     const user = req.user;
     if (!user) return res.status(401).json({ message: "Unauthorized" });
     const conversationId = req.params.conversationId as string;
-    await markConversationRead(conversationId, user.id);
+    const readState = await markConversationRead(conversationId, user.id);
+    emitChatRead(conversationId, user.id, readState.lastReadAt || new Date());
     return res.status(200).json({ ok: true });
   } catch (error: any) {
     if (error.message === "CONVERSATION_NOT_FOUND") return res.status(404).json({ message: "Conversation not found" });

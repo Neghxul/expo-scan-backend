@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initChatSocket = initChatSocket;
 exports.emitChatMessage = emitChatMessage;
+exports.emitChatRead = emitChatRead;
 const jwt_1 = require("../../utils/jwt");
 const chat_service_1 = require("./chat.service");
 let ioRef = null;
@@ -51,9 +52,15 @@ function initChatSocket(io) {
 function emitChatMessage(conversationId, message) {
     if (!ioRef)
         return;
-    ioRef.to(`conversation:${conversationId}`).emit("message:new", message);
     const recipients = message?.conversation?.members || [];
     recipients.forEach((member) => {
         ioRef?.to(`user:${member.userId}`).emit("message:new", message);
+    });
+}
+function emitChatRead(conversationId, userId, readAt) {
+    ioRef?.to(`conversation:${conversationId}`).emit("conversation:read", {
+        conversationId,
+        userId,
+        readAt: readAt.toISOString(),
     });
 }

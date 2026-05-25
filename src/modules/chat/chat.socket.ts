@@ -49,10 +49,16 @@ export function initChatSocket(io: Server) {
 
 export function emitChatMessage(conversationId: string, message: unknown) {
   if (!ioRef) return;
-  ioRef.to(`conversation:${conversationId}`).emit("message:new", message);
-
   const recipients = (message as { conversation?: { members?: { userId: string }[] } })?.conversation?.members || [];
   recipients.forEach((member) => {
     ioRef?.to(`user:${member.userId}`).emit("message:new", message);
+  });
+}
+
+export function emitChatRead(conversationId: string, userId: string, readAt: Date) {
+  ioRef?.to(`conversation:${conversationId}`).emit("conversation:read", {
+    conversationId,
+    userId,
+    readAt: readAt.toISOString(),
   });
 }

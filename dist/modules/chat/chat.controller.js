@@ -79,7 +79,8 @@ async function markReadController(req, res) {
         if (!user)
             return res.status(401).json({ message: "Unauthorized" });
         const conversationId = req.params.conversationId;
-        await (0, chat_service_1.markConversationRead)(conversationId, user.id);
+        const readState = await (0, chat_service_1.markConversationRead)(conversationId, user.id);
+        (0, chat_socket_1.emitChatRead)(conversationId, user.id, readState.lastReadAt || new Date());
         return res.status(200).json({ ok: true });
     }
     catch (error) {
