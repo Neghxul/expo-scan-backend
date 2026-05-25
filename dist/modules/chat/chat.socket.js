@@ -49,5 +49,11 @@ function initChatSocket(io) {
     });
 }
 function emitChatMessage(conversationId, message) {
-    ioRef?.to(`conversation:${conversationId}`).emit("message:new", message);
+    if (!ioRef)
+        return;
+    ioRef.to(`conversation:${conversationId}`).emit("message:new", message);
+    const recipients = message?.conversation?.members || [];
+    recipients.forEach((member) => {
+        ioRef?.to(`user:${member.userId}`).emit("message:new", message);
+    });
 }

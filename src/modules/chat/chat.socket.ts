@@ -48,5 +48,11 @@ export function initChatSocket(io: Server) {
 }
 
 export function emitChatMessage(conversationId: string, message: unknown) {
-  ioRef?.to(`conversation:${conversationId}`).emit("message:new", message);
+  if (!ioRef) return;
+  ioRef.to(`conversation:${conversationId}`).emit("message:new", message);
+
+  const recipients = (message as { conversation?: { members?: { userId: string }[] } })?.conversation?.members || [];
+  recipients.forEach((member) => {
+    ioRef?.to(`user:${member.userId}`).emit("message:new", message);
+  });
 }

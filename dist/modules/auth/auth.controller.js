@@ -20,10 +20,17 @@ async function loginController(req, res) {
         return res.status(200).json(result);
     }
     catch (error) {
-        if (error instanceof Error && error.message === "INVALID_CREDENTIALS") {
+        // Imprimimos el error en el servidor
+        console.error("💥 ERROR REAL EN LOGIN:", error);
+        if (error.message === "INVALID_CREDENTIALS") {
             return res.status(401).json({ message: "Invalid credentials" });
         }
-        return res.status(500).json({ message: "Internal server error" });
+        // Le mandamos el error crudo a tu celular (solo temporalmente para debug)
+        return res.status(500).json({
+            message: "Internal server error",
+            detalle: error.message,
+            stack: error.stack
+        });
     }
 }
 async function meController(req, res) {

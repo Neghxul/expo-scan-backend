@@ -32,15 +32,22 @@ export async function listConversations(userId: string) {
     },
   });
 
-  return memberships.map((membership) => {
-    const unreadCount = 0;
+  return Promise.all(memberships.map(async (membership) => {
+    const unreadCount = await prisma.chatMessage.count({
+      where: {
+        conversationId: membership.conversationId,
+        senderId: { not: userId },
+        ...(membership.lastReadAt ? { createdAt: { gt: membership.lastReadAt } } : {}),
+      },
+    });
+
     return {
       ...membership.conversation,
       currentUserLastReadAt: membership.lastReadAt,
       unreadCount,
       lastMessage: membership.conversation.messages[0] || null,
     };
-  });
+  }));
 }
 
 export async function startDirectConversation(currentUserId: string, otherUserId: string) {
@@ -96,7 +103,10 @@ export async function sendMessage(conversationId: string, senderId: string, body
   await assertConversationMember(conversationId, senderId);
   const message = await prisma.chatMessage.create({
     data: { conversationId, senderId, body: body.trim() },
-    include: { sender: { select: { id: true, name: true, email: true, role: true } } },
+    include: {
+      sender: { select: { id: true, name: true, email: true, role: true } },
+      conversation: { include: { members: { select: { userId: true } } } },
+    },
   });
   await prisma.conversation.update({ where: { id: conversationId }, data: { updatedAt: new Date() } });
   return message;
