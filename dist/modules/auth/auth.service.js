@@ -38,6 +38,7 @@ async function loginUser(email, password) {
             name: user.name,
             email: user.email,
             role: user.role,
+            avatarUrl: user.avatarUrl,
         },
     };
 }
@@ -50,6 +51,7 @@ async function getCurrentUser(userId) {
             email: true,
             role: true,
             isActive: true,
+            avatarUrl: true,
             createdAt: true,
         },
     });

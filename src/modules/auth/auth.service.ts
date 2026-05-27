@@ -36,6 +36,7 @@ export async function loginUser(email: string, password: string) {
       name: user.name,
       email: user.email,
       role: user.role,
+      avatarUrl: user.avatarUrl,
     },
   };
 }
@@ -49,6 +50,7 @@ export async function getCurrentUser(userId: string) {
       email: true,
       role: true,
       isActive: true,
+      avatarUrl: true,
       createdAt: true,
     },
   });

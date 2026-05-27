@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import { prisma } from "../../config/prisma";
+import { saveBase64Image } from "../../utils/imageUpload";
 
 const userSelect = {
   id: true,
@@ -12,16 +13,18 @@ const userSelect = {
   birthDate: true,
   phone: true,
   whatsapp: true,
+  avatarUrl: true,
   createdAt: true,
 };
 
 export async function createUser(params: any) {
-  const { name, email, password, role, lastName, maternalLastName, birthDate, phone, whatsapp, isActive } = params;
+  const { name, email, password, role, lastName, maternalLastName, birthDate, phone, whatsapp, isActive, avatarBase64, avatarMimeType, baseUrl } = params;
 
   const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase().trim() } });
   if (existing) throw new Error("EMAIL_ALREADY_EXISTS");
 
   const passwordHash = await bcrypt.hash(password, 10);
+  const avatarUrl = await saveBase64Image({ base64: avatarBase64, mimeType: avatarMimeType, baseUrl, folder: "avatars", maxBytes: 1_500_000 });
 
   return prisma.user.create({
     data: {
@@ -34,6 +37,7 @@ export async function createUser(params: any) {
       birthDate,
       phone,
       whatsapp,
+      avatarUrl,
       isActive: isActive ?? true,
     },
     select: userSelect,
@@ -48,12 +52,14 @@ export async function listUsers() {
 }
 
 export async function updateUser(id: string, params: any) {
-  const { password, ...rest } = params;
+  const { password, avatarBase64, avatarMimeType, baseUrl, ...rest } = params;
   const dataToUpdate: any = { ...rest };
 
   if (password) {
     dataToUpdate.passwordHash = await bcrypt.hash(password, 10);
   }
+  const avatarUrl = await saveBase64Image({ base64: avatarBase64, mimeType: avatarMimeType, baseUrl, folder: "avatars", maxBytes: 1_500_000 });
+  if (avatarUrl) dataToUpdate.avatarUrl = avatarUrl;
 
   return prisma.user.update({
     where: { id },
@@ -70,9 +76,13 @@ export async function getMe(id: string) {
 }
 
 export async function updateMe(id: string, params: any) {
+  const { avatarBase64, avatarMimeType, baseUrl, ...rest } = params;
+  const avatarUrl = await saveBase64Image({ base64: avatarBase64, mimeType: avatarMimeType, baseUrl, folder: "avatars", maxBytes: 1_500_000 });
+  const dataToUpdate = avatarUrl ? { ...rest, avatarUrl } : rest;
+
   return prisma.user.update({
     where: { id },
-    data: params,
+    data: dataToUpdate,
     select: userSelect,
   });
 }

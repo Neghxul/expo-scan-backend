@@ -12,6 +12,8 @@ exports.createUserSchema = zod_1.z.object({
     maternalLastName: zod_1.z.string().optional(),
     phone: zod_1.z.string().optional(),
     whatsapp: zod_1.z.string().optional(),
+    avatarBase64: zod_1.z.string().optional().nullable(),
+    avatarMimeType: zod_1.z.string().optional().nullable(),
     birthDate: zod_1.z.string().optional(),
     isActive: zod_1.z.boolean().optional(),
 });
@@ -25,6 +27,8 @@ exports.updateUserSchema = zod_1.z.object({
     maternalLastName: zod_1.z.string().optional(),
     phone: zod_1.z.string().optional(),
     whatsapp: zod_1.z.string().optional(),
+    avatarBase64: zod_1.z.string().optional().nullable(),
+    avatarMimeType: zod_1.z.string().optional().nullable(),
     birthDate: zod_1.z.string().optional(),
     isActive: zod_1.z.boolean().optional(),
 });
@@ -35,6 +39,8 @@ exports.updateMeSchema = zod_1.z.object({
     birthDate: zod_1.z.string().optional(),
     phone: zod_1.z.string().optional(),
     whatsapp: zod_1.z.string().optional(),
+    avatarBase64: zod_1.z.string().optional().nullable(),
+    avatarMimeType: zod_1.z.string().optional().nullable(),
 });
 exports.updatePasswordSchema = zod_1.z.object({
     oldPassword: zod_1.z.string().min(1),

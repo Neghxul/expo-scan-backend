@@ -25,6 +25,9 @@ export async function createRecordController(req: AuthenticatedRequest, res: Res
       if (error.message === "POSITION_REQUIRED") return res.status(400).json({ message: "El puesto es obligatorio" });
       if (error.message === "NOTES_REQUIRED") return res.status(400).json({ message: "Las notas son obligatorias" });
       if (error.message === "PRIORITY_REQUIRED") return res.status(400).json({ message: "Selecciona prioridad 01, 02 o 03" });
+      if (error.message === "WHATSAPP_REQUIRED") return res.status(400).json({ message: "El WhatsApp es obligatorio" });
+      if (error.message === "PHONE_REQUIRED") return res.status(400).json({ message: "El telefono es obligatorio" });
+      if (error.message === "EMAIL_REQUIRED") return res.status(400).json({ message: "El correo es obligatorio" });
       if (error.message === "PHONE_OR_EMAIL_REQUIRED") return res.status(400).json({ message: "Phone, WhatsApp or email is required" });
       if (error.message === "INVALID_PHONE") return res.status(400).json({ message: "Invalid phone" });
       if (error.message === "INVALID_EMAIL") return res.status(400).json({ message: "Invalid email" });
@@ -82,6 +85,9 @@ export async function updateRecordController(req: AuthenticatedRequest, res: Res
     if (error.message === "POSITION_REQUIRED") return res.status(400).json({ message: "El puesto es obligatorio" });
     if (error.message === "NOTES_REQUIRED") return res.status(400).json({ message: "Las notas son obligatorias" });
     if (error.message === "PRIORITY_REQUIRED") return res.status(400).json({ message: "Selecciona prioridad 01, 02 o 03" });
+    if (error.message === "WHATSAPP_REQUIRED") return res.status(400).json({ message: "El WhatsApp es obligatorio" });
+    if (error.message === "PHONE_REQUIRED") return res.status(400).json({ message: "El telefono es obligatorio" });
+    if (error.message === "EMAIL_REQUIRED") return res.status(400).json({ message: "El correo es obligatorio" });
     if (error.message === "INVALID_PHONE") return res.status(400).json({ message: "Invalid phone" });
     if (error.message === "INVALID_EMAIL") return res.status(400).json({ message: "Invalid email" });
     if (error.message === "BUSINESS_CARD_TOO_LARGE") return res.status(400).json({ message: "La imagen de tarjeta es demasiado grande" });

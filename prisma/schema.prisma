@@ -23,6 +23,7 @@ model User {
   birthDate        String?  // Fecha de nacimiento (String como DD/MM/AAAA o DateTime)
   phone            String?  // Teléfono
   whatsapp         String?
+  avatarUrl        String?
   email            String   @unique
   passwordHash     String   
   role             Role     @default(SELLER)

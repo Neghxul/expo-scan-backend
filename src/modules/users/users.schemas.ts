@@ -10,6 +10,8 @@ export const createUserSchema = z.object({
   maternalLastName: z.string().optional(),
   phone: z.string().optional(),
   whatsapp: z.string().optional(),
+  avatarBase64: z.string().optional().nullable(),
+  avatarMimeType: z.string().optional().nullable(),
   birthDate: z.string().optional(),
   isActive: z.boolean().optional(),
 });
@@ -24,6 +26,8 @@ export const updateUserSchema = z.object({
   maternalLastName: z.string().optional(),
   phone: z.string().optional(),
   whatsapp: z.string().optional(),
+  avatarBase64: z.string().optional().nullable(),
+  avatarMimeType: z.string().optional().nullable(),
   birthDate: z.string().optional(),
   isActive: z.boolean().optional(),
 });
@@ -35,6 +39,8 @@ export const updateMeSchema = z.object({
   birthDate: z.string().optional(),
   phone: z.string().optional(),
   whatsapp: z.string().optional(),
+  avatarBase64: z.string().optional().nullable(),
+  avatarMimeType: z.string().optional().nullable(),
 });
 
 export const updatePasswordSchema = z.object({

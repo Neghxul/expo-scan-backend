@@ -1,17 +1,12 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createRecord = createRecord;
 exports.listRecords = listRecords;
 exports.updateRecord = updateRecord;
 exports.deleteRecord = deleteRecord;
-const promises_1 = __importDefault(require("fs/promises"));
-const path_1 = __importDefault(require("path"));
-const crypto_1 = require("crypto");
 const prisma_1 = require("../../config/prisma");
 const settings_service_1 = require("../settings/settings.service");
+const imageUpload_1 = require("../../utils/imageUpload");
 function isValidEmail(email) {
     if (!email)
         return true;
@@ -43,20 +38,22 @@ function validateRequiredFields(fields) {
         throw new Error("NOTES_REQUIRED");
     if (!["01", "02", "03"].includes(fields.LeadPriority || ""))
         throw new Error("PRIORITY_REQUIRED");
+    if (!fields.Whatsapp?.trim())
+        throw new Error("WHATSAPP_REQUIRED");
+    if (!fields.Telefono?.trim())
+        throw new Error("PHONE_REQUIRED");
+    if (!fields.Correo?.trim())
+        throw new Error("EMAIL_REQUIRED");
 }
 async function saveBusinessCardImage(base64, mimeType, baseUrl) {
-    if (!base64?.trim())
-        return null;
-    const cleanBase64 = base64.replace(/^data:image\/\w+;base64,/, "");
-    const buffer = Buffer.from(cleanBase64, "base64");
-    if (buffer.length > 2500000)
-        throw new Error("BUSINESS_CARD_TOO_LARGE");
-    const extension = mimeType?.includes("png") ? "png" : "jpg";
-    const dir = path_1.default.join(process.cwd(), "uploads", "business-cards");
-    await promises_1.default.mkdir(dir, { recursive: true });
-    const fileName = `${Date.now()}-${(0, crypto_1.randomUUID)()}.${extension}`;
-    await promises_1.default.writeFile(path_1.default.join(dir, fileName), buffer);
-    return `${baseUrl || ""}/uploads/business-cards/${fileName}`;
+    try {
+        return await (0, imageUpload_1.saveBase64Image)({ base64, mimeType, baseUrl, folder: "business-cards", maxBytes: 2500000 });
+    }
+    catch (error) {
+        if (error instanceof Error && error.message === "IMAGE_TOO_LARGE")
+            throw new Error("BUSINESS_CARD_TOO_LARGE");
+        throw error;
+    }
 }
 async function createRecord(params) {
     const { userId, qrRaw, badgeNumber, eventName, fields, phone, email } = params;
@@ -73,6 +70,8 @@ async function createRecord(params) {
     if (!hasOne)
         throw new Error("PHONE_OR_EMAIL_REQUIRED");
     if (!isValidPhone(phone))
+        throw new Error("INVALID_PHONE");
+    if (!isValidPhone(fields.Whatsapp))
         throw new Error("INVALID_PHONE");
     if (!isValidEmail(email))
         throw new Error("INVALID_EMAIL");
@@ -159,6 +158,8 @@ async function updateRecord(id, userId, userRole, data, baseUrl) {
     const nextFields = data.fields !== undefined ? data.fields : record.fields;
     validateRequiredFields(nextFields);
     if (!isValidPhone(data.phone ?? record.phone))
+        throw new Error("INVALID_PHONE");
+    if (!isValidPhone(nextFields.Whatsapp))
         throw new Error("INVALID_PHONE");
     if (!isValidEmail(data.email ?? record.email))
         throw new Error("INVALID_EMAIL");

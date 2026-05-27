@@ -13,7 +13,7 @@ async function listChatUsers(currentUserId) {
     return prisma_1.prisma.user.findMany({
         where: { id: { not: currentUserId }, isActive: true },
         orderBy: { name: "asc" },
-        select: { id: true, name: true, email: true, role: true },
+        select: { id: true, name: true, email: true, role: true, avatarUrl: true },
     });
 }
 async function listConversations(userId) {
@@ -25,7 +25,7 @@ async function listConversations(userId) {
                 include: {
                     members: {
                         include: {
-                            user: { select: { id: true, name: true, email: true, role: true } },
+                            user: { select: { id: true, name: true, email: true, role: true, avatarUrl: true } },
                         },
                     },
                     messages: {
@@ -33,7 +33,7 @@ async function listConversations(userId) {
                         orderBy: { createdAt: "desc" },
                         take: 1,
                         include: {
-                            sender: { select: { id: true, name: true } },
+                            sender: { select: { id: true, name: true, avatarUrl: true } },
                         },
                     },
                 },
@@ -69,7 +69,7 @@ async function startDirectConversation(currentUserId, otherUserId) {
             ],
         },
         include: {
-            members: { include: { user: { select: { id: true, name: true, email: true, role: true } } } },
+            members: { include: { user: { select: { id: true, name: true, email: true, role: true, avatarUrl: true } } } },
         },
     });
     if (existing)
@@ -82,7 +82,7 @@ async function startDirectConversation(currentUserId, otherUserId) {
             },
         },
         include: {
-            members: { include: { user: { select: { id: true, name: true, email: true, role: true } } } },
+            members: { include: { user: { select: { id: true, name: true, email: true, role: true, avatarUrl: true } } } },
         },
     });
 }
@@ -100,7 +100,7 @@ async function listMessages(conversationId, userId) {
         where: { conversationId, deletedAt: null },
         orderBy: { createdAt: "asc" },
         take: 200,
-        include: { sender: { select: { id: true, name: true, email: true, role: true } } },
+        include: { sender: { select: { id: true, name: true, email: true, role: true, avatarUrl: true } } },
     });
 }
 async function sendMessage(conversationId, senderId, body) {
@@ -108,7 +108,7 @@ async function sendMessage(conversationId, senderId, body) {
     const message = await prisma_1.prisma.chatMessage.create({
         data: { conversationId, senderId, body: body.trim() },
         include: {
-            sender: { select: { id: true, name: true, email: true, role: true } },
+            sender: { select: { id: true, name: true, email: true, role: true, avatarUrl: true } },
             conversation: { include: { members: { select: { userId: true } } } },
         },
     });
@@ -131,7 +131,7 @@ async function deleteMessage(messageId, userId) {
         where: { id: messageId },
         data: { deletedAt: new Date(), deletedById: userId },
         include: {
-            sender: { select: { id: true, name: true, email: true, role: true } },
+            sender: { select: { id: true, name: true, email: true, role: true, avatarUrl: true } },
             conversation: { include: { members: { select: { userId: true } } } },
         },
     });

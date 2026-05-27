@@ -1,9 +1,7 @@
 import { Prisma, Role } from "@prisma/client";
-import fs from "fs/promises";
-import path from "path";
-import { randomUUID } from "crypto";
 import { prisma } from "../../config/prisma";
 import { getManualEventDefault, reserveManualBadgeNumber } from "../settings/settings.service";
+import { saveBase64Image } from "../../utils/imageUpload";
 
 function isValidEmail(email?: string | null) {
   if (!email) return true;
@@ -34,23 +32,18 @@ function validateRequiredFields(fields: Record<string, string>) {
   if (!fields.Puesto?.trim()) throw new Error("POSITION_REQUIRED");
   if (!fields.Notas?.trim()) throw new Error("NOTES_REQUIRED");
   if (!["01", "02", "03"].includes(fields.LeadPriority || "")) throw new Error("PRIORITY_REQUIRED");
+  if (!fields.Whatsapp?.trim()) throw new Error("WHATSAPP_REQUIRED");
+  if (!fields.Telefono?.trim()) throw new Error("PHONE_REQUIRED");
+  if (!fields.Correo?.trim()) throw new Error("EMAIL_REQUIRED");
 }
 
 async function saveBusinessCardImage(base64?: string | null, mimeType?: string | null, baseUrl?: string) {
-  if (!base64?.trim()) return null;
-
-  const cleanBase64 = base64.replace(/^data:image\/\w+;base64,/, "");
-  const buffer = Buffer.from(cleanBase64, "base64");
-  if (buffer.length > 2_500_000) throw new Error("BUSINESS_CARD_TOO_LARGE");
-
-  const extension = mimeType?.includes("png") ? "png" : "jpg";
-  const dir = path.join(process.cwd(), "uploads", "business-cards");
-  await fs.mkdir(dir, { recursive: true });
-
-  const fileName = `${Date.now()}-${randomUUID()}.${extension}`;
-  await fs.writeFile(path.join(dir, fileName), buffer);
-
-  return `${baseUrl || ""}/uploads/business-cards/${fileName}`;
+  try {
+    return await saveBase64Image({ base64, mimeType, baseUrl, folder: "business-cards", maxBytes: 2_500_000 });
+  } catch (error) {
+    if (error instanceof Error && error.message === "IMAGE_TOO_LARGE") throw new Error("BUSINESS_CARD_TOO_LARGE");
+    throw error;
+  }
 }
 
 export async function createRecord(params: {
@@ -79,6 +72,7 @@ export async function createRecord(params: {
   validateRequiredFields(fields);
   if (!hasOne) throw new Error("PHONE_OR_EMAIL_REQUIRED");
   if (!isValidPhone(phone)) throw new Error("INVALID_PHONE");
+  if (!isValidPhone(fields.Whatsapp)) throw new Error("INVALID_PHONE");
   if (!isValidEmail(email)) throw new Error("INVALID_EMAIL");
   if (normalizedBadge && normalizedEvent) {
     const existing = await prisma.record.findFirst({
@@ -175,6 +169,7 @@ export async function updateRecord(id: string, userId: string, userRole: Role, d
 
   validateRequiredFields(nextFields);
   if (!isValidPhone(data.phone ?? record.phone)) throw new Error("INVALID_PHONE");
+  if (!isValidPhone(nextFields.Whatsapp)) throw new Error("INVALID_PHONE");
   if (!isValidEmail(data.email ?? record.email)) throw new Error("INVALID_EMAIL");
   if (nextBadge && nextEvent) {
     const existing = await prisma.record.findFirst({

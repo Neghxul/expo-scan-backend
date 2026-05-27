@@ -17,5 +17,5 @@ exports.env = {
     PORT: Number(process.env.PORT || 3001),
     DATABASE_URL: getEnv("DATABASE_URL"),
     JWT_SECRET: getEnv("JWT_SECRET"),
-    JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "7d",
+    JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "180d",
 };

@@ -8,12 +8,16 @@ exports.updateMeController = updateMeController;
 exports.updateMyPasswordController = updateMyPasswordController;
 const users_schemas_1 = require("./users.schemas");
 const users_service_1 = require("./users.service");
+function getBaseUrl(req) {
+    const protocol = String(req.headers["x-forwarded-proto"] || req.protocol || "https").split(",")[0];
+    return `${protocol}://${req.get("host")}`;
+}
 async function createUserController(req, res) {
     try {
         const parsed = users_schemas_1.createUserSchema.safeParse(req.body);
         if (!parsed.success)
             return res.status(400).json({ message: "Invalid payload", errors: parsed.error.flatten() });
-        const user = await (0, users_service_1.createUser)(parsed.data);
+        const user = await (0, users_service_1.createUser)({ ...parsed.data, baseUrl: getBaseUrl(req) });
         return res.status(201).json(user);
     }
     catch (error) {
@@ -40,7 +44,7 @@ async function updateUserController(req, res) {
         const parsed = users_schemas_1.updateUserSchema.safeParse(req.body);
         if (!parsed.success)
             return res.status(400).json({ message: "Invalid payload", errors: parsed.error.flatten() });
-        const user = await (0, users_service_1.updateUser)(id, parsed.data);
+        const user = await (0, users_service_1.updateUser)(id, { ...parsed.data, baseUrl: getBaseUrl(req) });
         return res.status(200).json(user);
     }
     catch (error) {
@@ -68,11 +72,13 @@ async function updateMeController(req, res) {
         const parsed = users_schemas_1.updateMeSchema.safeParse(req.body);
         if (!parsed.success)
             return res.status(400).json({ message: "Invalid payload", errors: parsed.error.flatten() });
-        const user = await (0, users_service_1.updateMe)(userId, parsed.data);
+        const user = await (0, users_service_1.updateMe)(userId, { ...parsed.data, baseUrl: getBaseUrl(req) });
         return res.status(200).json(user);
     }
     catch (error) {
         console.error("[users:update-me]", error);
+        if (error.message === "IMAGE_TOO_LARGE")
+            return res.status(400).json({ message: "La foto es demasiado grande" });
         return res.status(500).json({ message: "Internal server error" });
     }
 }

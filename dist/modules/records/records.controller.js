@@ -30,6 +30,12 @@ async function createRecordController(req, res) {
                 return res.status(400).json({ message: "Las notas son obligatorias" });
             if (error.message === "PRIORITY_REQUIRED")
                 return res.status(400).json({ message: "Selecciona prioridad 01, 02 o 03" });
+            if (error.message === "WHATSAPP_REQUIRED")
+                return res.status(400).json({ message: "El WhatsApp es obligatorio" });
+            if (error.message === "PHONE_REQUIRED")
+                return res.status(400).json({ message: "El telefono es obligatorio" });
+            if (error.message === "EMAIL_REQUIRED")
+                return res.status(400).json({ message: "El correo es obligatorio" });
             if (error.message === "PHONE_OR_EMAIL_REQUIRED")
                 return res.status(400).json({ message: "Phone, WhatsApp or email is required" });
             if (error.message === "INVALID_PHONE")
@@ -95,6 +101,12 @@ async function updateRecordController(req, res) {
             return res.status(400).json({ message: "Las notas son obligatorias" });
         if (error.message === "PRIORITY_REQUIRED")
             return res.status(400).json({ message: "Selecciona prioridad 01, 02 o 03" });
+        if (error.message === "WHATSAPP_REQUIRED")
+            return res.status(400).json({ message: "El WhatsApp es obligatorio" });
+        if (error.message === "PHONE_REQUIRED")
+            return res.status(400).json({ message: "El telefono es obligatorio" });
+        if (error.message === "EMAIL_REQUIRED")
+            return res.status(400).json({ message: "El correo es obligatorio" });
         if (error.message === "INVALID_PHONE")
             return res.status(400).json({ message: "Invalid phone" });
         if (error.message === "INVALID_EMAIL")
