@@ -11,6 +11,7 @@ export async function createUserController(req: Request, res: Response) {
     return res.status(201).json(user);
   } catch (error: any) {
     if (error.message === "EMAIL_ALREADY_EXISTS") return res.status(409).json({ message: "El correo ya existe" });
+    console.error("[users:create]", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -20,6 +21,7 @@ export async function listUsersController(req: Request, res: Response) {
     const users = await listUsers();
     return res.status(200).json(users);
   } catch (error) {
+    console.error("[users:list]", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -35,6 +37,7 @@ export async function updateUserController(req: Request, res: Response) {
     const user = await updateUser(id, parsed.data);
     return res.status(200).json(user);
   } catch (error) {
+    console.error("[users:update]", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -48,6 +51,7 @@ export async function getMeController(req: Request | any, res: Response) {
     const user = await getMe(userId);
     return res.status(200).json(user);
   } catch (error) {
+    console.error("[users:me]", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -63,6 +67,7 @@ export async function updateMeController(req: Request | any, res: Response) {
     const user = await updateMe(userId, parsed.data);
     return res.status(200).json(user);
   } catch (error) {
+    console.error("[users:update-me]", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -79,6 +84,7 @@ export async function updateMyPasswordController(req: Request | any, res: Respon
     return res.status(200).json({ message: "Password updated" });
   } catch (error: any) {
     if (error.message === "INVALID_OLD_PASSWORD") return res.status(400).json({ message: "Contraseña actual incorrecta" });
+    console.error("[users:update-password]", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 }

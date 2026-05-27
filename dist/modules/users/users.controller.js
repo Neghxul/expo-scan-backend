@@ -19,6 +19,7 @@ async function createUserController(req, res) {
     catch (error) {
         if (error.message === "EMAIL_ALREADY_EXISTS")
             return res.status(409).json({ message: "El correo ya existe" });
+        console.error("[users:create]", error);
         return res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -28,6 +29,7 @@ async function listUsersController(req, res) {
         return res.status(200).json(users);
     }
     catch (error) {
+        console.error("[users:list]", error);
         return res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -42,6 +44,7 @@ async function updateUserController(req, res) {
         return res.status(200).json(user);
     }
     catch (error) {
+        console.error("[users:update]", error);
         return res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -54,6 +57,7 @@ async function getMeController(req, res) {
         return res.status(200).json(user);
     }
     catch (error) {
+        console.error("[users:me]", error);
         return res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -68,6 +72,7 @@ async function updateMeController(req, res) {
         return res.status(200).json(user);
     }
     catch (error) {
+        console.error("[users:update-me]", error);
         return res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -84,6 +89,7 @@ async function updateMyPasswordController(req, res) {
     catch (error) {
         if (error.message === "INVALID_OLD_PASSWORD")
             return res.status(400).json({ message: "Contraseña actual incorrecta" });
+        console.error("[users:update-password]", error);
         return res.status(500).json({ message: "Internal server error" });
     }
 }

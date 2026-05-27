@@ -36,6 +36,7 @@ export async function createRecordController(req: AuthenticatedRequest, res: Res
         });
       }
     }
+    console.error("[records:create]", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -58,6 +59,7 @@ export async function listRecordsController(req: AuthenticatedRequest, res: Resp
 
     return res.status(200).json(records);
   } catch (error) {
+    console.error("[records:list]", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -83,6 +85,7 @@ export async function updateRecordController(req: AuthenticatedRequest, res: Res
     if (error.message === "INVALID_PHONE") return res.status(400).json({ message: "Invalid phone" });
     if (error.message === "INVALID_EMAIL") return res.status(400).json({ message: "Invalid email" });
     if (error.message === "BUSINESS_CARD_TOO_LARGE") return res.status(400).json({ message: "La imagen de tarjeta es demasiado grande" });
+    console.error("[records:update]", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -98,6 +101,7 @@ export async function deleteRecordController(req: AuthenticatedRequest, res: Res
   } catch (error: any) {
     if (error.message === "RECORD_NOT_FOUND") return res.status(404).json({ message: "Registro no encontrado" });
     if (error.message === "UNAUTHORIZED") return res.status(403).json({ message: "No tienes permiso para eliminar este registro" });
+    console.error("[records:delete]", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 }
