@@ -12,6 +12,7 @@ export const createUserSchema = z.object({
   whatsapp: z.string().optional(),
   avatarBase64: z.string().optional().nullable(),
   avatarMimeType: z.string().optional().nullable(),
+  removeAvatar: z.boolean().optional(),
   birthDate: z.string().optional(),
   isActive: z.boolean().optional(),
 });
@@ -28,6 +29,7 @@ export const updateUserSchema = z.object({
   whatsapp: z.string().optional(),
   avatarBase64: z.string().optional().nullable(),
   avatarMimeType: z.string().optional().nullable(),
+  removeAvatar: z.boolean().optional(),
   birthDate: z.string().optional(),
   isActive: z.boolean().optional(),
 });
@@ -41,6 +43,7 @@ export const updateMeSchema = z.object({
   whatsapp: z.string().optional(),
   avatarBase64: z.string().optional().nullable(),
   avatarMimeType: z.string().optional().nullable(),
+  removeAvatar: z.boolean().optional(),
 });
 
 export const updatePasswordSchema = z.object({

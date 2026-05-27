@@ -52,7 +52,7 @@ export async function listUsers() {
 }
 
 export async function updateUser(id: string, params: any) {
-  const { password, avatarBase64, avatarMimeType, baseUrl, ...rest } = params;
+  const { password, avatarBase64, avatarMimeType, removeAvatar, baseUrl, ...rest } = params;
   const dataToUpdate: any = { ...rest };
 
   if (password) {
@@ -60,6 +60,7 @@ export async function updateUser(id: string, params: any) {
   }
   const avatarUrl = await saveBase64Image({ base64: avatarBase64, mimeType: avatarMimeType, baseUrl, folder: "avatars", maxBytes: 1_500_000 });
   if (avatarUrl) dataToUpdate.avatarUrl = avatarUrl;
+  if (removeAvatar) dataToUpdate.avatarUrl = null;
 
   return prisma.user.update({
     where: { id },
@@ -76,9 +77,9 @@ export async function getMe(id: string) {
 }
 
 export async function updateMe(id: string, params: any) {
-  const { avatarBase64, avatarMimeType, baseUrl, ...rest } = params;
+  const { avatarBase64, avatarMimeType, removeAvatar, baseUrl, ...rest } = params;
   const avatarUrl = await saveBase64Image({ base64: avatarBase64, mimeType: avatarMimeType, baseUrl, folder: "avatars", maxBytes: 1_500_000 });
-  const dataToUpdate = avatarUrl ? { ...rest, avatarUrl } : rest;
+  const dataToUpdate = avatarUrl ? { ...rest, avatarUrl } : { ...rest, ...(removeAvatar ? { avatarUrl: null } : {}) };
 
   return prisma.user.update({
     where: { id },

@@ -14,6 +14,7 @@ exports.createUserSchema = zod_1.z.object({
     whatsapp: zod_1.z.string().optional(),
     avatarBase64: zod_1.z.string().optional().nullable(),
     avatarMimeType: zod_1.z.string().optional().nullable(),
+    removeAvatar: zod_1.z.boolean().optional(),
     birthDate: zod_1.z.string().optional(),
     isActive: zod_1.z.boolean().optional(),
 });
@@ -29,6 +30,7 @@ exports.updateUserSchema = zod_1.z.object({
     whatsapp: zod_1.z.string().optional(),
     avatarBase64: zod_1.z.string().optional().nullable(),
     avatarMimeType: zod_1.z.string().optional().nullable(),
+    removeAvatar: zod_1.z.boolean().optional(),
     birthDate: zod_1.z.string().optional(),
     isActive: zod_1.z.boolean().optional(),
 });
@@ -41,6 +43,7 @@ exports.updateMeSchema = zod_1.z.object({
     whatsapp: zod_1.z.string().optional(),
     avatarBase64: zod_1.z.string().optional().nullable(),
     avatarMimeType: zod_1.z.string().optional().nullable(),
+    removeAvatar: zod_1.z.boolean().optional(),
 });
 exports.updatePasswordSchema = zod_1.z.object({
     oldPassword: zod_1.z.string().min(1),

@@ -3,10 +3,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.getUploadsRoot = getUploadsRoot;
 exports.saveBase64Image = saveBase64Image;
 const promises_1 = __importDefault(require("fs/promises"));
 const path_1 = __importDefault(require("path"));
 const crypto_1 = require("crypto");
+function getUploadsRoot() {
+    return process.env.UPLOADS_DIR || path_1.default.join(process.cwd(), "uploads");
+}
 async function saveBase64Image(params) {
     if (!params.base64?.trim())
         return null;
@@ -15,7 +19,7 @@ async function saveBase64Image(params) {
     if (buffer.length > (params.maxBytes || 2500000))
         throw new Error("IMAGE_TOO_LARGE");
     const extension = params.mimeType?.includes("png") ? "png" : "jpg";
-    const dir = path_1.default.join(process.cwd(), "uploads", params.folder);
+    const dir = path_1.default.join(getUploadsRoot(), params.folder);
     await promises_1.default.mkdir(dir, { recursive: true });
     const fileName = `${Date.now()}-${(0, crypto_1.randomUUID)()}.${extension}`;
     await promises_1.default.writeFile(path_1.default.join(dir, fileName), buffer);

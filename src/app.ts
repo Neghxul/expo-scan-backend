@@ -1,17 +1,17 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
-import path from "path";
 import authRoutes  from "./modules/auth/auth.routes";
 import recordRoutes from "./modules/records/records.routes";
 import userRoutes from "./modules/users/users.routes";
 import chatRoutes from "./modules/chat/chat.routes";
 import settingsRoutes from "./modules/settings/settings.routes";
+import { getUploadsRoot } from "./utils/imageUpload";
 
 export const app = express();
 
 app.use(cors());
 app.use(express.json({ limit: "8mb" }));
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+app.use("/uploads", express.static(getUploadsRoot()));
 
 app.get("/health", (_req: Request, res: Response) => {
   res.status(200).json({ ok: true });
