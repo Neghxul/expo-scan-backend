@@ -6,7 +6,7 @@
     "postinstall": "prisma generate",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "prisma generate && tsc",
-    "start": "prisma migrate deploy && node dist/server.js",
+    "start": "node dist/server.js",
     "deploy": "prisma generate && prisma migrate deploy && tsc",
     "hostinger:start": "prisma generate && prisma migrate deploy && tsc && node dist/server.js",
     "prisma:generate": "prisma generate",
