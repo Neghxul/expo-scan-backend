@@ -9,6 +9,9 @@ exports.createRecordSchema = zod_1.z.object({
     fields: zod_1.z.record(zod_1.z.string()),
     phone: zod_1.z.string().optional().nullable(),
     email: zod_1.z.string().optional().nullable(),
+    isManual: zod_1.z.boolean().optional(),
+    businessCardBase64: zod_1.z.string().optional().nullable(),
+    businessCardMimeType: zod_1.z.string().optional().nullable(),
 });
 exports.listRecordsQuerySchema = zod_1.z.object({
     userId: zod_1.z.string().optional(),
@@ -24,4 +27,6 @@ exports.updateRecordSchema = zod_1.z.object({
     fields: zod_1.z.record(zod_1.z.string()).optional(),
     phone: zod_1.z.string().nullable().optional(),
     email: zod_1.z.string().nullable().optional(),
+    businessCardBase64: zod_1.z.string().nullable().optional(),
+    businessCardMimeType: zod_1.z.string().nullable().optional(),
 });

@@ -7,6 +7,9 @@ export const createRecordSchema = z.object({
   fields: z.record(z.string()),
   phone: z.string().optional().nullable(),
   email: z.string().optional().nullable(),
+  isManual: z.boolean().optional(),
+  businessCardBase64: z.string().optional().nullable(),
+  businessCardMimeType: z.string().optional().nullable(),
 });
 
 export const listRecordsQuerySchema = z.object({
@@ -24,4 +27,6 @@ export const updateRecordSchema = z.object({
   fields: z.record(z.string()).optional(),
   phone: z.string().nullable().optional(),
   email: z.string().nullable().optional(),
+  businessCardBase64: z.string().nullable().optional(),
+  businessCardMimeType: z.string().nullable().optional(),
 });

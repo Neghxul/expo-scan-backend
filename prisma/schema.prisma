@@ -30,6 +30,7 @@ model User {
   records          Record[]
   conversations    ConversationMember[]
   messages         ChatMessage[]
+  pushTokens       PushToken[]
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -46,12 +47,21 @@ model Record {
   fields      Json
   phone       String?
   email       String?
+  businessCardUrl String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([userId, createdAt])
   @@unique([badgeNumber, eventName], name: "records_badge_event_unique")
   @@map("records")
+}
+
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("app_settings")
 }
 
 model Conversation {
@@ -87,10 +97,27 @@ model ChatMessage {
   senderId       String
   sender         User         @relation(fields: [senderId], references: [id], onDelete: Restrict)
   body           String
+  deletedAt      DateTime?
+  deletedById    String?
   createdAt      DateTime     @default(now())
 
   @@index([conversationId, createdAt])
   @@map("chat_messages")
+}
+
+model PushToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  platform  String?
+  deviceId  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("push_tokens")
 }
 
 enum ConversationType {

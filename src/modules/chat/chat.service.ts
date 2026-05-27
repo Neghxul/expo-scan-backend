@@ -21,6 +21,7 @@ export async function listConversations(userId: string) {
             },
           },
           messages: {
+            where: { deletedAt: null },
             orderBy: { createdAt: "desc" },
             take: 1,
             include: {
@@ -37,6 +38,7 @@ export async function listConversations(userId: string) {
       where: {
         conversationId: membership.conversationId,
         senderId: { not: userId },
+        deletedAt: null,
         ...(membership.lastReadAt ? { createdAt: { gt: membership.lastReadAt } } : {}),
       },
     });
@@ -92,7 +94,7 @@ export async function assertConversationMember(conversationId: string, userId: s
 export async function listMessages(conversationId: string, userId: string) {
   await assertConversationMember(conversationId, userId);
   return prisma.chatMessage.findMany({
-    where: { conversationId },
+    where: { conversationId, deletedAt: null },
     orderBy: { createdAt: "asc" },
     take: 200,
     include: { sender: { select: { id: true, name: true, email: true, role: true } } },
@@ -110,6 +112,28 @@ export async function sendMessage(conversationId: string, senderId: string, body
   });
   await prisma.conversation.update({ where: { id: conversationId }, data: { updatedAt: new Date() } });
   return message;
+}
+
+export async function deleteMessage(messageId: string, userId: string) {
+  const message = await prisma.chatMessage.findUnique({
+    where: { id: messageId },
+    include: { conversation: { include: { members: { select: { userId: true } } } } },
+  });
+
+  if (!message || message.deletedAt) throw new Error("MESSAGE_NOT_FOUND");
+  if (message.senderId !== userId) throw new Error("UNAUTHORIZED");
+
+  const ageMs = Date.now() - message.createdAt.getTime();
+  if (ageMs > 60 * 60 * 1000) throw new Error("DELETE_WINDOW_EXPIRED");
+
+  return prisma.chatMessage.update({
+    where: { id: messageId },
+    data: { deletedAt: new Date(), deletedById: userId },
+    include: {
+      sender: { select: { id: true, name: true, email: true, role: true } },
+      conversation: { include: { members: { select: { userId: true } } } },
+    },
+  });
 }
 
 export async function markConversationRead(conversationId: string, userId: string) {

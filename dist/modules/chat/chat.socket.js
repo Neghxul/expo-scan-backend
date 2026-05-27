@@ -3,8 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.initChatSocket = initChatSocket;
 exports.emitChatMessage = emitChatMessage;
 exports.emitChatRead = emitChatRead;
+exports.emitChatMessageDeleted = emitChatMessageDeleted;
 const jwt_1 = require("../../utils/jwt");
 const chat_service_1 = require("./chat.service");
+const push_service_1 = require("./push.service");
 let ioRef = null;
 function initChatSocket(io) {
     ioRef = io;
@@ -41,6 +43,15 @@ function initChatSocket(io) {
                     throw new Error("Unauthorized");
                 const message = await (0, chat_service_1.sendMessage)(payload.conversationId, socket.userId, payload.body);
                 emitChatMessage(payload.conversationId, message);
+                const recipientIds = message.conversation.members.map((member) => member.userId).filter((userId) => userId !== socket.userId);
+                (0, push_service_1.sendChatPushNotification)({
+                    conversationId: payload.conversationId,
+                    messageId: message.id,
+                    senderId: socket.userId,
+                    senderName: message.sender?.name || "Usuario",
+                    body: message.body,
+                    recipientIds,
+                }).catch((error) => console.error("Push send error", error));
                 ack?.({ ok: true, message });
             }
             catch {
@@ -62,5 +73,13 @@ function emitChatRead(conversationId, userId, readAt) {
         conversationId,
         userId,
         readAt: readAt.toISOString(),
+    });
+}
+function emitChatMessageDeleted(conversationId, message) {
+    if (!ioRef)
+        return;
+    const recipients = message?.conversation?.members || [];
+    recipients.forEach((member) => {
+        ioRef?.to(`user:${member.userId}`).emit("message:deleted", message);
     });
 }

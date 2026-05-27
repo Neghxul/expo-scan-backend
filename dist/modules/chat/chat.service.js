@@ -6,6 +6,7 @@ exports.startDirectConversation = startDirectConversation;
 exports.assertConversationMember = assertConversationMember;
 exports.listMessages = listMessages;
 exports.sendMessage = sendMessage;
+exports.deleteMessage = deleteMessage;
 exports.markConversationRead = markConversationRead;
 const prisma_1 = require("../../config/prisma");
 async function listChatUsers(currentUserId) {
@@ -28,6 +29,7 @@ async function listConversations(userId) {
                         },
                     },
                     messages: {
+                        where: { deletedAt: null },
                         orderBy: { createdAt: "desc" },
                         take: 1,
                         include: {
@@ -43,6 +45,7 @@ async function listConversations(userId) {
             where: {
                 conversationId: membership.conversationId,
                 senderId: { not: userId },
+                deletedAt: null,
                 ...(membership.lastReadAt ? { createdAt: { gt: membership.lastReadAt } } : {}),
             },
         });
@@ -94,7 +97,7 @@ async function assertConversationMember(conversationId, userId) {
 async function listMessages(conversationId, userId) {
     await assertConversationMember(conversationId, userId);
     return prisma_1.prisma.chatMessage.findMany({
-        where: { conversationId },
+        where: { conversationId, deletedAt: null },
         orderBy: { createdAt: "asc" },
         take: 200,
         include: { sender: { select: { id: true, name: true, email: true, role: true } } },
@@ -111,6 +114,27 @@ async function sendMessage(conversationId, senderId, body) {
     });
     await prisma_1.prisma.conversation.update({ where: { id: conversationId }, data: { updatedAt: new Date() } });
     return message;
+}
+async function deleteMessage(messageId, userId) {
+    const message = await prisma_1.prisma.chatMessage.findUnique({
+        where: { id: messageId },
+        include: { conversation: { include: { members: { select: { userId: true } } } } },
+    });
+    if (!message || message.deletedAt)
+        throw new Error("MESSAGE_NOT_FOUND");
+    if (message.senderId !== userId)
+        throw new Error("UNAUTHORIZED");
+    const ageMs = Date.now() - message.createdAt.getTime();
+    if (ageMs > 60 * 60 * 1000)
+        throw new Error("DELETE_WINDOW_EXPIRED");
+    return prisma_1.prisma.chatMessage.update({
+        where: { id: messageId },
+        data: { deletedAt: new Date(), deletedById: userId },
+        include: {
+            sender: { select: { id: true, name: true, email: true, role: true } },
+            conversation: { include: { members: { select: { userId: true } } } },
+        },
+    });
 }
 async function markConversationRead(conversationId, userId) {
     await assertConversationMember(conversationId, userId);

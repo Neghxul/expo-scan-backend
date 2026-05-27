@@ -1,5 +1,9 @@
 import { Prisma, Role } from "@prisma/client";
+import fs from "fs/promises";
+import path from "path";
+import { randomUUID } from "crypto";
 import { prisma } from "../../config/prisma";
+import { getManualEventDefault, reserveManualBadgeNumber } from "../settings/settings.service";
 
 function isValidEmail(email?: string | null) {
   if (!email) return true;
@@ -26,6 +30,29 @@ function canDeleteRecord(role: Role, ownerId: string, requesterId: string) {
   return role === "SELLER" && ownerId === requesterId;
 }
 
+function validateRequiredFields(fields: Record<string, string>) {
+  if (!fields.Puesto?.trim()) throw new Error("POSITION_REQUIRED");
+  if (!fields.Notas?.trim()) throw new Error("NOTES_REQUIRED");
+  if (!["01", "02", "03"].includes(fields.LeadPriority || "")) throw new Error("PRIORITY_REQUIRED");
+}
+
+async function saveBusinessCardImage(base64?: string | null, mimeType?: string | null, baseUrl?: string) {
+  if (!base64?.trim()) return null;
+
+  const cleanBase64 = base64.replace(/^data:image\/\w+;base64,/, "");
+  const buffer = Buffer.from(cleanBase64, "base64");
+  if (buffer.length > 2_500_000) throw new Error("BUSINESS_CARD_TOO_LARGE");
+
+  const extension = mimeType?.includes("png") ? "png" : "jpg";
+  const dir = path.join(process.cwd(), "uploads", "business-cards");
+  await fs.mkdir(dir, { recursive: true });
+
+  const fileName = `${Date.now()}-${randomUUID()}.${extension}`;
+  await fs.writeFile(path.join(dir, fileName), buffer);
+
+  return `${baseUrl || ""}/uploads/business-cards/${fileName}`;
+}
+
 export async function createRecord(params: {
   userId: string;
   qrRaw: string;
@@ -34,12 +61,22 @@ export async function createRecord(params: {
   fields: Record<string, string>;
   phone?: string | null;
   email?: string | null;
+  isManual?: boolean;
+  businessCardBase64?: string | null;
+  businessCardMimeType?: string | null;
+  baseUrl?: string;
 }) {
   const { userId, qrRaw, badgeNumber, eventName, fields, phone, email } = params;
   const hasOne = Boolean(phone?.trim()) || Boolean(email?.trim()) || Boolean(fields?.Whatsapp?.trim());
-  const normalizedBadge = badgeNumber?.trim() || null;
-  const normalizedEvent = eventName?.trim() || null;
+  let normalizedBadge = badgeNumber?.trim() || null;
+  let normalizedEvent = eventName?.trim() || null;
 
+  if (params.isManual) {
+    if (!normalizedBadge || /^MAN/i.test(normalizedBadge)) normalizedBadge = await reserveManualBadgeNumber();
+    if (!normalizedEvent) normalizedEvent = await getManualEventDefault();
+  }
+
+  validateRequiredFields(fields);
   if (!hasOne) throw new Error("PHONE_OR_EMAIL_REQUIRED");
   if (!isValidPhone(phone)) throw new Error("INVALID_PHONE");
   if (!isValidEmail(email)) throw new Error("INVALID_EMAIL");
@@ -60,15 +97,18 @@ export async function createRecord(params: {
     }
   }
 
+  const businessCardUrl = await saveBusinessCardImage(params.businessCardBase64, params.businessCardMimeType, params.baseUrl);
+
   return prisma.record.create({
     data: {
       userId,
-      qrRaw,
+      qrRaw: qrRaw || [normalizedBadge || "", normalizedEvent || "", fields.Nombre || "", fields.Apellido || "", fields.Empresa || ""].join("$"),
       badgeNumber: normalizedBadge,
       eventName: normalizedEvent,
       fields,
       phone: phone?.trim() || null,
       email: email?.trim() || null,
+      businessCardUrl,
     },
     include: {
       user: { select: { id: true, name: true, email: true, role: true } },
@@ -125,13 +165,17 @@ export async function listRecords(params: {
   });
 }
 
-export async function updateRecord(id: string, userId: string, userRole: Role, data: any) {
+export async function updateRecord(id: string, userId: string, userRole: Role, data: any, baseUrl?: string) {
   const record = await prisma.record.findUnique({ where: { id } });
   if (!record) throw new Error("RECORD_NOT_FOUND");
   if (!canEditRecord(userRole, record.userId, userId)) throw new Error("UNAUTHORIZED");
   const nextBadge = data.badgeNumber !== undefined ? data.badgeNumber : record.badgeNumber;
   const nextEvent = data.eventName !== undefined ? data.eventName : record.eventName;
+  const nextFields = data.fields !== undefined ? data.fields : (record.fields as Record<string, string>);
 
+  validateRequiredFields(nextFields);
+  if (!isValidPhone(data.phone ?? record.phone)) throw new Error("INVALID_PHONE");
+  if (!isValidEmail(data.email ?? record.email)) throw new Error("INVALID_EMAIL");
   if (nextBadge && nextEvent) {
     const existing = await prisma.record.findFirst({
       where: {
@@ -150,14 +194,17 @@ export async function updateRecord(id: string, userId: string, userRole: Role, d
     }
   }
 
+  const nextBusinessCardUrl = await saveBusinessCardImage(data.businessCardBase64, data.businessCardMimeType, baseUrl);
+
   return prisma.record.update({
     where: { id },
     data: {
       badgeNumber: data.badgeNumber !== undefined ? data.badgeNumber : record.badgeNumber,
       eventName: data.eventName !== undefined ? data.eventName : record.eventName,
-      fields: data.fields !== undefined ? data.fields : (record.fields as any),
+      fields: nextFields,
       phone: data.phone !== undefined ? data.phone : record.phone,
       email: data.email !== undefined ? data.email : record.email,
+      businessCardUrl: nextBusinessCardUrl || record.businessCardUrl,
     },
     include: {
       user: { select: { id: true, name: true, email: true, role: true } },
