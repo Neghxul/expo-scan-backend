@@ -7,11 +7,14 @@ exports.emitChatMessageDeleted = emitChatMessageDeleted;
 const jwt_1 = require("../../utils/jwt");
 const chat_service_1 = require("./chat.service");
 const push_service_1 = require("./push.service");
+const settings_service_1 = require("../settings/settings.service");
 let ioRef = null;
 function initChatSocket(io) {
     ioRef = io;
-    io.use((socket, next) => {
+    io.use(async (socket, next) => {
         try {
+            if (!(await (0, settings_service_1.isChatEnabled)()))
+                return next(new Error("Chat disabled"));
             const token = String(socket.handshake.auth?.token || "").trim();
             if (!token)
                 return next(new Error("Unauthorized"));

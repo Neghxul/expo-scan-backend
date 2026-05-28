@@ -9,10 +9,11 @@ export async function getAppSettings() {
   return {
     manualEventDefault: map.manual_event_default || DEFAULT_MANUAL_EVENT,
     nextManualBadgeNumber: `MAN${String(Number(map.manual_badge_sequence || "1")).padStart(3, "0")}`,
+    chatEnabled: map.chat_enabled === "true",
   };
 }
 
-export async function updateAppSettings(params: { manualEventDefault?: string }) {
+export async function updateAppSettings(params: { manualEventDefault?: string; chatEnabled?: boolean }) {
   if (params.manualEventDefault !== undefined) {
     await prisma.appSetting.upsert({
       where: { key: "manual_event_default" },
@@ -20,8 +21,20 @@ export async function updateAppSettings(params: { manualEventDefault?: string })
       create: { key: "manual_event_default", value: params.manualEventDefault.trim() || DEFAULT_MANUAL_EVENT },
     });
   }
+  if (params.chatEnabled !== undefined) {
+    await prisma.appSetting.upsert({
+      where: { key: "chat_enabled" },
+      update: { value: params.chatEnabled ? "true" : "false" },
+      create: { key: "chat_enabled", value: params.chatEnabled ? "true" : "false" },
+    });
+  }
 
   return getAppSettings();
+}
+
+export async function isChatEnabled() {
+  const setting = await prisma.appSetting.findUnique({ where: { key: "chat_enabled" } });
+  return setting?.value === "true";
 }
 
 export async function reserveManualBadgeNumber() {

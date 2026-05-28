@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getAppSettings = getAppSettings;
 exports.updateAppSettings = updateAppSettings;
+exports.isChatEnabled = isChatEnabled;
 exports.reserveManualBadgeNumber = reserveManualBadgeNumber;
 exports.getManualEventDefault = getManualEventDefault;
 const prisma_1 = require("../../config/prisma");
@@ -12,6 +13,7 @@ async function getAppSettings() {
     return {
         manualEventDefault: map.manual_event_default || DEFAULT_MANUAL_EVENT,
         nextManualBadgeNumber: `MAN${String(Number(map.manual_badge_sequence || "1")).padStart(3, "0")}`,
+        chatEnabled: map.chat_enabled === "true",
     };
 }
 async function updateAppSettings(params) {
@@ -22,7 +24,18 @@ async function updateAppSettings(params) {
             create: { key: "manual_event_default", value: params.manualEventDefault.trim() || DEFAULT_MANUAL_EVENT },
         });
     }
+    if (params.chatEnabled !== undefined) {
+        await prisma_1.prisma.appSetting.upsert({
+            where: { key: "chat_enabled" },
+            update: { value: params.chatEnabled ? "true" : "false" },
+            create: { key: "chat_enabled", value: params.chatEnabled ? "true" : "false" },
+        });
+    }
     return getAppSettings();
+}
+async function isChatEnabled() {
+    const setting = await prisma_1.prisma.appSetting.findUnique({ where: { key: "chat_enabled" } });
+    return setting?.value === "true";
 }
 async function reserveManualBadgeNumber() {
     return prisma_1.prisma.$transaction(async (tx) => {

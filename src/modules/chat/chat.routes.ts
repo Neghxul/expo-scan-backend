@@ -10,16 +10,18 @@ import {
   sendMessageController,
   startDirectConversationController,
 } from "./chat.controller";
+import { requireChatEnabled } from "./chat.enabled.middleware";
 
 const router = Router();
 
-router.get("/users", requireAuth, listChatUsersController);
-router.post("/push-token", requireAuth, registerPushTokenController);
-router.get("/conversations", requireAuth, listConversationsController);
-router.post("/conversations/direct", requireAuth, startDirectConversationController);
-router.get("/conversations/:conversationId/messages", requireAuth, listMessagesController);
-router.post("/conversations/:conversationId/messages", requireAuth, sendMessageController);
-router.post("/conversations/:conversationId/read", requireAuth, markReadController);
-router.delete("/messages/:messageId", requireAuth, deleteMessageController);
+router.use(requireAuth, requireChatEnabled);
+router.get("/users", listChatUsersController);
+router.post("/push-token", registerPushTokenController);
+router.get("/conversations", listConversationsController);
+router.post("/conversations/direct", startDirectConversationController);
+router.get("/conversations/:conversationId/messages", listMessagesController);
+router.post("/conversations/:conversationId/messages", sendMessageController);
+router.post("/conversations/:conversationId/read", markReadController);
+router.delete("/messages/:messageId", deleteMessageController);
 
 export default router;

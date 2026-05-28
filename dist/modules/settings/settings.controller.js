@@ -6,6 +6,7 @@ const zod_1 = require("zod");
 const settings_service_1 = require("./settings.service");
 const updateSettingsSchema = zod_1.z.object({
     manualEventDefault: zod_1.z.string().min(1).max(80).optional(),
+    chatEnabled: zod_1.z.boolean().optional(),
 });
 async function getSettingsController(req, res) {
     try {

@@ -5,6 +5,7 @@ import { getAppSettings, updateAppSettings } from "./settings.service";
 
 const updateSettingsSchema = z.object({
   manualEventDefault: z.string().min(1).max(80).optional(),
+  chatEnabled: z.boolean().optional(),
 });
 
 export async function getSettingsController(req: AuthenticatedRequest, res: Response) {
