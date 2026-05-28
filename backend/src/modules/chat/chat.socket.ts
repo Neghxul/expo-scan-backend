@@ -2,6 +2,7 @@ import { Server, Socket } from "socket.io";
 import { verifyAccessToken } from "../../utils/jwt";
 import { assertConversationMember, sendMessage } from "./chat.service";
 import { sendChatPushNotification } from "./push.service";
+import { isChatEnabled } from "../settings/settings.service";
 
 let ioRef: Server | null = null;
 
@@ -10,8 +11,9 @@ type AuthedSocket = Socket & { userId?: string };
 export function initChatSocket(io: Server) {
   ioRef = io;
 
-  io.use((socket: AuthedSocket, next) => {
+  io.use(async (socket: AuthedSocket, next) => {
     try {
+      if (!(await isChatEnabled())) return next(new Error("Chat disabled"));
       const token = String(socket.handshake.auth?.token || "").trim();
       if (!token) return next(new Error("Unauthorized"));
       const payload = verifyAccessToken(token);
