@@ -4,6 +4,11 @@ import { createRecordSchema, listRecordsQuerySchema, updateRecordSchema } from "
 import { createRecord, deleteRecord, listRecords, updateRecord } from "./records.service";
 
 function getBaseUrl(req: AuthenticatedRequest) {
+
+  if (process.env.BASE_URL) {
+    return process.env.BASE_URL;
+  }
+
   const protocol = String(req.headers["x-forwarded-proto"] || req.protocol || "https").split(",")[0];
   return `${protocol}://${req.get("host")}`;
 }

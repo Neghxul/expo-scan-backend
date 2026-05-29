@@ -3,6 +3,11 @@ import { createUserSchema, updateUserSchema, updateMeSchema, updatePasswordSchem
 import { createUser, listUsers, updateUser, getMe, updateMe, updateMyPassword } from "./users.service";
 
 function getBaseUrl(req: Request) {
+
+  if (process.env.BASE_URL) {
+    return process.env.BASE_URL;
+  }
+
   const protocol = String(req.headers["x-forwarded-proto"] || req.protocol || "https").split(",")[0];
   return `${protocol}://${req.get("host")}`;
 }
