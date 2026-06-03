@@ -92,21 +92,28 @@ export async function createRecord(params: {
 
   const businessCardUrl = await saveBusinessCardImage(params.businessCardBase64, params.businessCardMimeType, params.baseUrl);
 
-  return prisma.record.create({
-    data: {
-      userId,
-      qrRaw: qrRaw || [normalizedBadge || "", normalizedEvent || "", fields.Nombre || "", fields.Apellido || "", fields.Empresa || ""].join("$"),
-      badgeNumber: normalizedBadge,
-      eventName: normalizedEvent,
-      fields,
-      phone: phone?.trim() || null,
-      email: email?.trim() || null,
-      businessCardUrl,
-    },
-    include: {
-      user: { select: { id: true, name: true, email: true, role: true } },
-    },
-  });
+  try {
+    return await prisma.record.create({
+      data: {
+        userId,
+        qrRaw: qrRaw || [normalizedBadge || "", normalizedEvent || "", fields.Nombre || "", fields.Apellido || "", fields.Empresa || ""].join("$"),
+        badgeNumber: normalizedBadge,
+        eventName: normalizedEvent,
+        fields,
+        phone: phone?.trim() || null,
+        email: email?.trim() || null,
+        businessCardUrl,
+      },
+      include: {
+        user: { select: { id: true, name: true, email: true, role: true } },
+      },
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      throw new Error("DUPLICATE_BADGE");
+    }
+    throw error;
+  }
 }
 
 export async function listRecords(params: {
