@@ -9,6 +9,9 @@ exports.updateMyPasswordController = updateMyPasswordController;
 const users_schemas_1 = require("./users.schemas");
 const users_service_1 = require("./users.service");
 function getBaseUrl(req) {
+    if (process.env.BASE_URL) {
+        return process.env.BASE_URL;
+    }
     const protocol = String(req.headers["x-forwarded-proto"] || req.protocol || "https").split(",")[0];
     return `${protocol}://${req.get("host")}`;
 }

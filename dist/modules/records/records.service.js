@@ -40,8 +40,6 @@ function validateRequiredFields(fields) {
         throw new Error("PRIORITY_REQUIRED");
     if (!fields.Whatsapp?.trim())
         throw new Error("WHATSAPP_REQUIRED");
-    if (!fields.Telefono?.trim())
-        throw new Error("PHONE_REQUIRED");
     if (!fields.Correo?.trim())
         throw new Error("EMAIL_REQUIRED");
 }

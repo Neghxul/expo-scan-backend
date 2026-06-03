@@ -7,6 +7,9 @@ exports.deleteRecordController = deleteRecordController;
 const records_schemas_1 = require("./records.schemas");
 const records_service_1 = require("./records.service");
 function getBaseUrl(req) {
+    if (process.env.BASE_URL) {
+        return process.env.BASE_URL;
+    }
     const protocol = String(req.headers["x-forwarded-proto"] || req.protocol || "https").split(",")[0];
     return `${protocol}://${req.get("host")}`;
 }
@@ -31,9 +34,7 @@ async function createRecordController(req, res) {
             if (error.message === "PRIORITY_REQUIRED")
                 return res.status(400).json({ message: "Selecciona prioridad 01, 02 o 03" });
             if (error.message === "WHATSAPP_REQUIRED")
-                return res.status(400).json({ message: "El WhatsApp es obligatorio" });
-            if (error.message === "PHONE_REQUIRED")
-                return res.status(400).json({ message: "El telefono es obligatorio" });
+                return res.status(400).json({ message: "El telefono/WhatsApp es obligatorio" });
             if (error.message === "EMAIL_REQUIRED")
                 return res.status(400).json({ message: "El correo es obligatorio" });
             if (error.message === "PHONE_OR_EMAIL_REQUIRED")
@@ -102,9 +103,7 @@ async function updateRecordController(req, res) {
         if (error.message === "PRIORITY_REQUIRED")
             return res.status(400).json({ message: "Selecciona prioridad 01, 02 o 03" });
         if (error.message === "WHATSAPP_REQUIRED")
-            return res.status(400).json({ message: "El WhatsApp es obligatorio" });
-        if (error.message === "PHONE_REQUIRED")
-            return res.status(400).json({ message: "El telefono es obligatorio" });
+            return res.status(400).json({ message: "El telefono/WhatsApp es obligatorio" });
         if (error.message === "EMAIL_REQUIRED")
             return res.status(400).json({ message: "El correo es obligatorio" });
         if (error.message === "INVALID_PHONE")

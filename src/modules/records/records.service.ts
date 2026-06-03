@@ -33,7 +33,6 @@ function validateRequiredFields(fields: Record<string, string>) {
   if (!fields.Notas?.trim()) throw new Error("NOTES_REQUIRED");
   if (!["01", "02", "03"].includes(fields.LeadPriority || "")) throw new Error("PRIORITY_REQUIRED");
   if (!fields.Whatsapp?.trim()) throw new Error("WHATSAPP_REQUIRED");
-  if (!fields.Telefono?.trim()) throw new Error("PHONE_REQUIRED");
   if (!fields.Correo?.trim()) throw new Error("EMAIL_REQUIRED");
 }
 
